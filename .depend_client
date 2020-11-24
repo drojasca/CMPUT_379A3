@@ -1,0 +1,2 @@
+main_client.o: client_code/main_client.cpp client_code/client.h \
+ client_code/string_handler.h client_code/global.h

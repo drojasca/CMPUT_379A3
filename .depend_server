@@ -1,0 +1,1 @@
+tands.o: server_code/tands.cpp server_code/tands.h

@@ -1,1 +1,0 @@
-main_client.o: main_client.cpp client.h string_handler.h global.h

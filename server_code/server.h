@@ -2,6 +2,7 @@
 #define SEVER_H
 #include <string>
 #include <regex>
+#include "../global.h"
 
 class Server
 {

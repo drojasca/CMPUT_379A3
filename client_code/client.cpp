@@ -3,11 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include "client.h"
-#include "tands.h"
+#include "../tands.h"
 
 void Client::run(std::string port, std::string ip)
 {
@@ -21,22 +18,24 @@ void Client::run(std::string port, std::string ip)
     if (this->port < 5000 || this->port > 64001)
         return;
 
-    if (this->initialize())
+    this->initialize();
+
+    if (this->connect_server())
     {
         this->send_server();
     }
 }
 
-bool Client::initialize()
+void Client::initialize()
 {
-
-    struct sockaddr_in serv_addr;
-
     // setup server address
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr(this->ip.c_str());
-    serv_addr.sin_port = htons(this->port); // port
+    this->serv_addr.sin_family = AF_INET;
+    this->serv_addr.sin_addr.s_addr = inet_addr(this->ip.c_str());
+    this->serv_addr.sin_port = htons(this->port); // port
+}
 
+bool Client::connect_server()
+{
     this->fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (this->fd < 0)
@@ -44,8 +43,11 @@ bool Client::initialize()
         return false;
     }
 
-    if (connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) // bind socket to the server address
+    if (connect(this->fd, (struct sockaddr *)&this->serv_addr, sizeof(this->serv_addr)) < 0)
+    {
+        std::cout << "FAILED TO CONNECT" << std::endl;
         return false;
+    }
 
     return true;
 }
@@ -55,24 +57,30 @@ bool Client::send_server()
     std::string val = "";
     char message[1000], server_reply[1000];
     //keep communicating with server
-    while (this->get_work(val))
+    while (this->get_work(&val))
     {
         if (val == "F")
         {
             std::cout << "ERROR WITH INPUT" << std::endl;
+            continue;
+        }
+
+        else if (val == "S")
+        {
+            continue;
         }
 
         memset(message, 0, 1000);
-        scanf(val.c_str(), message);
-
-        puts("SENT:");
-        puts(val.c_str());
+        strcpy(message, val.c_str());
+        message[val.size()] = '\0';
 
         if (send(this->fd, message, strlen(message), 0) < 0)
         {
             puts("Send failed");
             return false;
         }
+
+        std::cout << "waiting" << std::endl;
 
         //Receive a reply from the server
         memset(server_reply, 0, 1000);
@@ -82,13 +90,14 @@ bool Client::send_server()
             break;
         }
 
-        // TODO reply
+        close(this->fd);
+        this->connect_server();
     }
 
     return true;
 }
 
-bool Client::get_work(std::string &num)
+bool Client::get_work(std::string *num)
 {
     std::vector<std::string> parsed;
     bool more = this->handler.get_input(parsed);
@@ -97,19 +106,20 @@ bool Client::get_work(std::string &num)
         return false;
 
     std::string input = parsed[0];
-
     // get the the number from the input
-    std::string num_tran = std::string(input.begin() + 1, input.end());
+    std::string num_tran = input.substr(1);
 
     // check if it is a numbre
     if (!std::regex_match(num_tran, std::regex("[0-9]+")))
-        num = "F";
-    return true;
+    {
+        *num = "F";
+        return true;
+    }
 
     // if it is for a consumer, put it in the queue
     if (input.at(0) == 'T')
     {
-        num = num_tran;
+        *num = num_tran;
         return true;
     }
 
@@ -117,11 +127,11 @@ bool Client::get_work(std::string &num)
     else if (input.at(0) == 'S')
     {
         sleep(std::stoi(num_tran));
-        num = "S";
+        *num = "S";
         return true;
     }
 
     else
-        num = "F";
+        *num = "F";
     return true;
 }

@@ -8,8 +8,8 @@ int main(int argc, char **argv)
     if (argc > 1)
     {
         port = argv[1];
-        std::cout << port << std::endl;
     }
+
     else
         return 0;
 

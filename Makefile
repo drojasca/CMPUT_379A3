@@ -1,4 +1,4 @@
-CFLAGS = -Wall -std=c++11
+CFLAGS = -Wall -std=c++11 -Iinclude
 CC = g++
 
 # https://stackoverflow.com/questions/30573481/path-include-and-src-directory-makefile/30602701
@@ -8,33 +8,35 @@ TARGET_CLIENT = client
 SERVER_DIR = ./server_code
 CLIENT_DIR = ./client_code
 
-SOURCE_SERVER = $(wildcard $(SERVER_DIR)/*.cpp)
-SOURCE_CLIENT = $(wildcard $(CLIENT_DIR)/*.cpp)
+SOURCE_SERVER = $(wildcard $(SERVER_DIR)/*.cpp /*cpp)
+SOURCE_CLIENT = $(wildcard $(CLIENT_DIR)/*.cpp /*cpp)
 
 OBJECTS_SERVER = $(SOURCE_SERVER:$(SERVER_DIR)/%.cpp=$(SERVER_DIR)/%.o)
 OBJECTS_CLIENT = $(SOURCE_CLIENT:$(CLIENT_DIR)/%.cpp=$(CLIENT_DIR)/%.o)
+OBJECTS_COMMON = $(SOURCE_COMMON:%.cpp=%.o)
 
 .PHONY: all clean
 
-# optimize: CFLAGS += -O3
-# optimize: all
+optimize: CFLAGS += -O3
+optimize: all
 
-# debug: CFLAGS += -g
-# debug: all
+debug: CFLAGS += -g
+debug: all
 
 all: $(TARGET_CLIENT) $(TARGET_SERVER)
 
-$(TARGET_CLIENT): $(OBJECTS_CLIENT)
+$(TARGET_CLIENT): $(OBJECTS_CLIENT) $(OBJECTS_COMMON)
 	$(CC) $(CFLAGS) $(OBJECTS_CLIENT) -o $(TARGET_CLIENT)
 
 $(CLIENT_DIR)/%.o: $(CLIENT_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET_SERVER): $(OBJECTS_SERVER)
+$(TARGET_SERVER): $(OBJECTS_SERVER) $(OBJECTS_COMMON)
 	$(CC) $(CFLAGS) $(OBJECTS_SERVER) -o $(TARGET_SERVER)
 
 $(SERVER_DIR)/%.o: $(SERVER_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
+
 
 
 # depend gotten from https://stackoverflow.com/questions/2394609/makefile-header-dependencies
@@ -54,6 +56,7 @@ include .depend_server
 include .depend_client
 
 clean:
+	rm -f core
 	rm -f core client $(CLIENT_DIR)/*.o 
 	rm -f core server $(SERVER_DIR)/*.o 
 

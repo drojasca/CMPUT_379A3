@@ -58,7 +58,7 @@ void StringHandler::parse_input(std::vector<std::string> &parsed_input, std::str
     }
 }
 
-bool StringHandler::get_input(std::vector<std::string> parsed)
+bool StringHandler::get_input(std::vector<std::string> &parsed)
 {
     std::string input;
 

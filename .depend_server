@@ -1,1 +1,2 @@
-tands.o: server_code/tands.cpp server_code/tands.h
+main_server.o: server_code/main_server.cpp server_code/server.h \
+ server_code/../global.h

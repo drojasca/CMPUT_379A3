@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <string>
 #include "server.h"
+#include "../tands.h"
 
 void Server::run(std::string port)
 {
@@ -21,6 +22,10 @@ void Server::run(std::string port)
     if (this->initialize())
     {
         this->listen_client();
+    }
+    else
+    {
+        std::cout << "error" << std::endl;
     }
 }
 
@@ -76,9 +81,11 @@ bool Server::listen_client()
         {
             //Send the message back to client
             ans += buffer;
+            write(client_fd, buffer, strlen(buffer));
             memset(buffer, 0, 1000);
         }
 
+        puts(ans.c_str());
         write(client_fd, buffer, strlen(buffer));
         if (read_size == -1)
         {

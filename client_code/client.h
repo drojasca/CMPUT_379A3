@@ -2,9 +2,7 @@
 #define CLIENT_H
 #include "string_handler.h"
 #include "../global.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "../tands.h"
 class Client
 {
 public:
@@ -20,6 +18,8 @@ private:
     std::string ip;
     StringHandler handler;
     struct sockaddr_in serv_addr;
+    int count = 0;
+    int timeout = 3000;
 };
 
 #endif

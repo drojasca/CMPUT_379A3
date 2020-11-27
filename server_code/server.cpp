@@ -7,7 +7,6 @@
 #include <netinet/in.h>
 #include <string>
 #include "server.h"
-#include "../tands.h"
 
 void Server::run(std::string port)
 {
@@ -48,50 +47,70 @@ bool Server::initialize()
     if (bind(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         return false;
 
+    if (listen(this->fd, 100) < 0) // wait for clients, only 1 is allowed.
+        return false;
+
+    this->fds[0].fd = this->fd;
+    this->fds[0].events = POLLIN;
+
     return true;
 }
 
 bool Server::listen_client()
 {
-    int read_size = 0;
+    int read_size;
+    char buffer[1000];
 
     printf("Listening on port %d for clients.\n", this->port);
-    if (listen(this->fd, 100) < 0) // wait for clients, only 1 is allowed.
-        return false;
 
     while (1)
     {
+        memset(buffer, 0, 1000);
+        printf("Waiting on poll()...\n");
+        this->rc = poll(fds, this->nfs, this->timeout);
+
+        if (rc < 0)
+        {
+            perror("  poll() failed");
+            return false;
+        }
+
+        if (rc == 0)
+        {
+            printf("  poll() timed out.  End program.\n");
+            return false;
+        }
+
+        int c = sizeof(struct sockaddr_in);
+        int client;
+
+        //accept connection from an incoming client
+        int client_fd = accept(this->fd, (struct sockaddr *)&client, (socklen_t *)&c);
+        if (client_fd < 0)
+        {
+            perror("accept failed");
+            return false;
+        }
+
+        puts("Connection accepted");
 
         std::string ans = "";
-        struct sockaddr_in client_address; // client address
-        int len = sizeof(client_address);
-
-        printf("Waiting for clients...\n");
-        int client_fd = accept(fd, (struct sockaddr *)&client_address, (socklen_t *)&len); // accept connection
-
-        if (client_fd < 0) // bad connection
-            continue;      // discard
-
-        printf("Client connected.\n");
-        char buffer[1000];
-
-        //Receive a message from client
 
         while ((read_size = recv(client_fd, buffer, 1000, 0)) > 0)
         {
             //Send the message back to client
             ans += buffer;
+            std::cout << ans << std::endl;
+            Trans(std::stoi(ans));
             write(client_fd, buffer, strlen(buffer));
+            std::cout << "HI" << std::endl;
             memset(buffer, 0, 1000);
         }
 
-        puts(ans.c_str());
-        write(client_fd, buffer, strlen(buffer));
-        if (read_size == -1)
-        {
-            perror("recv failed");
-        }
-
-        printf("Client disconnected.\n");
+        // memset(fds, 0, sizeof(fds));
+        // this->fds[0].fd = this->fd;
+        // this->fds[0].events = POLLIN;
     }
+
+    return true;
 }

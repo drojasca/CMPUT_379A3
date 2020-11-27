@@ -3,6 +3,7 @@
 #include <string>
 #include <regex>
 #include "../global.h"
+#include "../tands.h"
 
 class Server
 {
@@ -14,6 +15,11 @@ public:
 private:
     int port;
     int fd;
+    int count = 0;
+    pollfd fds[200];
+    int timeout = 30000;
+    int rc;
+    int nfs = 1;
 };
 
 #endif

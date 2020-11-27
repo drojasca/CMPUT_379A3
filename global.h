@@ -1,7 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <queue>
 #include <istream>
 #include <iostream>
 #include <string>
@@ -12,4 +11,9 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/poll.h>
+
 #endif

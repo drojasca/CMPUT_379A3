@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "client.h"
-#include "../tands.h"
 
 void Client::run(std::string port, std::string ip)
 {
@@ -19,11 +18,7 @@ void Client::run(std::string port, std::string ip)
         return;
 
     this->initialize();
-
-    if (this->connect_server())
-    {
-        this->send_server();
-    }
+    this->send_server();
 }
 
 void Client::initialize()
@@ -70,6 +65,9 @@ bool Client::send_server()
             continue;
         }
 
+        if (!this->connect_server())
+            return false;
+
         memset(message, 0, 1000);
         strcpy(message, val.c_str());
         message[val.size()] = '\0';
@@ -91,7 +89,6 @@ bool Client::send_server()
         }
 
         close(this->fd);
-        this->connect_server();
     }
 
     return true;
@@ -109,6 +106,8 @@ bool Client::get_work(std::string *num)
     // get the the number from the input
     std::string num_tran = input.substr(1);
 
+    std::cout << input << std::endl;
+
     // check if it is a numbre
     if (!std::regex_match(num_tran, std::regex("[0-9]+")))
     {
@@ -119,6 +118,7 @@ bool Client::get_work(std::string *num)
     // if it is for a consumer, put it in the queue
     if (input.at(0) == 'T')
     {
+        this->count++;
         *num = num_tran;
         return true;
     }
@@ -126,7 +126,8 @@ bool Client::get_work(std::string *num)
     // if it is sleep, put the producer to sleep
     else if (input.at(0) == 'S')
     {
-        sleep(std::stoi(num_tran));
+        Sleep(std::stoi(num_tran));
+        this->count++;
         *num = "S";
         return true;
     }

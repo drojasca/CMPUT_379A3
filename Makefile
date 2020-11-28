@@ -6,7 +6,7 @@ TARGET_CLIENT = client
 
 SERVER_DIR = ./server_code
 CLIENT_DIR = ./client_code
-COMMON_DIR = ./
+COMMON_DIR = ./common
 
 SOURCE_SERVER = $(wildcard $(SERVER_DIR)/*.cpp)
 SOURCE_CLIENT = $(wildcard $(CLIENT_DIR)/*.cpp)
@@ -53,7 +53,7 @@ $(SOURCE_COMMON)/%.o:$(SOURCE_COMMON)/%.cpp
 	
 
 clean:
-	rm -f core *.o *.d
+	rm -f core $(COMMON_DIR)/*.o $(COMMON_DIR)/*.d
 	rm -f core client $(CLIENT_DIR)/*.o $(CLIENT_DIR)/*.d 
 	rm -f core server $(SERVER_DIR)/*.o $(SERVER_DIR)/*.d
 

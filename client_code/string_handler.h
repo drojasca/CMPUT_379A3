@@ -1,6 +1,6 @@
 #ifndef STRING_HANDLER_H
 #define STRING_HANDLER_H
-#include "../global.h"
+#include "../common/global.h"
 
 class StringHandler
 {

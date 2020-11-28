@@ -10,7 +10,9 @@ int main(int argc, char **argv)
     }
     else
         return 0;
-    Client client;
-    client.run(port, ip);
+
+    Client client(ip);
+    client.run(port);
+
     return 0;
 }

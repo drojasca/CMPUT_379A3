@@ -8,6 +8,45 @@
 #include <string>
 #include "server.h"
 
+void parse_input(std::vector<std::string> &parsed_input, std::string input)
+{
+    std::string temp;
+    // parse string on white space
+    for (auto c : input)
+    {
+        if (c == ' ' && temp.size() != 0)
+        {
+            parsed_input.push_back(temp);
+            temp = "";
+        }
+
+        if (c != ' ')
+        {
+            temp += c;
+        }
+    }
+
+    if (temp.size() != 0)
+    {
+        parsed_input.push_back(temp);
+    }
+}
+
+void Server::print(std::string type, std::string name, std::string command)
+{
+    auto current = std::chrono::system_clock::now();
+    double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
+
+    if (type == "work")
+    {
+        printf("%.2f: # %3d (T%3s) from %s\n", current_epoch, this->count, command.c_str(), name.c_str());
+    }
+    else if (type == "done")
+    {
+        printf("%.2f: # %3d (Done) from %s\n", current_epoch, this->count, name.c_str());
+    }
+}
+
 void Server::run(std::string port)
 {
     if (!std::regex_match(port, std::regex("[0-9]+")))
@@ -18,14 +57,19 @@ void Server::run(std::string port)
     if (this->port < 5000 || this->port > 64001)
         return;
 
-    if (this->initialize())
-    {
-        this->listen_client();
-    }
-    else
+    if (!this->initialize())
     {
         std::cout << "error" << std::endl;
+        return;
     }
+
+    if (!this->listen_client())
+    {
+        std::cout << "error" << std::endl;
+        return;
+    }
+
+    this->print_statistics();
 }
 
 bool Server::initialize()
@@ -47,7 +91,7 @@ bool Server::initialize()
     if (bind(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         return false;
 
-    if (listen(this->fd, 100) < 0) // wait for clients, only 1 is allowed.
+    if (listen(this->fd, 1) < 0) // wait for clients, only 1 is allowed.
         return false;
 
     this->fds[0].fd = this->fd;
@@ -66,7 +110,6 @@ bool Server::listen_client()
     while (1)
     {
         memset(buffer, 0, 1000);
-        printf("Waiting on poll()...\n");
         this->rc = poll(fds, this->nfs, this->timeout);
 
         if (rc < 0)
@@ -77,8 +120,7 @@ bool Server::listen_client()
 
         if (rc == 0)
         {
-            printf("  poll() timed out.  End program.\n");
-            return false;
+            break;
         }
 
         int c = sizeof(struct sockaddr_in);
@@ -92,25 +134,63 @@ bool Server::listen_client()
             return false;
         }
 
-        puts("Connection accepted");
+        std::string message = "";
+        bool received = false;
 
-        std::string ans = "";
-
-        while ((read_size = recv(client_fd, buffer, 1000, 0)) > 0)
+        while (message[message.size() - 1] != '\n' && (read_size = recv(client_fd, buffer, 1000, 0)) > 0)
         {
             //Send the message back to client
-            ans += buffer;
-            std::cout << ans << std::endl;
-            Trans(std::stoi(ans));
-            write(client_fd, buffer, strlen(buffer));
-            std::cout << "HI" << std::endl;
+            received = true;
+            message += buffer;
             memset(buffer, 0, 1000);
         }
 
-        // memset(fds, 0, sizeof(fds));
-        // this->fds[0].fd = this->fd;
-        // this->fds[0].events = POLLIN;
+        if (!received)
+        {
+            return false;
+        }
+
+        std::string client_name = handleMessage(message);
+        std::string res = std::to_string(this->count);
+        char response[res.size() + 1];
+        strcpy(response, res.c_str());
+        response[res.size()] = '\0';
+
+        write(client_fd, response, strlen(response));
+        this->print("done", client_name);
     }
 
     return true;
+}
+
+std::string Server::handleMessage(std::string message)
+{
+    this->count++;
+    std::vector<std::string> parsed_input;
+    parse_input(parsed_input, message);
+
+    std::string work = parsed_input[0];
+    std::string client_name = parsed_input[1];
+
+    client_name = client_name.substr(0, client_name.size() - 1);
+
+    if (this->clients.find(client_name) == this->clients.end())
+    {
+        this->clients.insert({client_name, 0});
+    }
+
+    this->clients[client_name]++;
+    this->print("work", client_name, work);
+
+    Trans(std::stoi(work));
+    return client_name;
+}
+
+void Server::print_statistics()
+{
+    printf("\nSUMMARY\n");
+    for (auto &name : this->clients)
+    {
+        printf("\t%d transactions from %s\n", name.second, name.first.c_str());
+    }
 }

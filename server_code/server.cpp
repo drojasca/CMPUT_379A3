@@ -138,7 +138,12 @@ bool Server::listen_client()
         response[res.size()] = '\0';
 
         // send response
-        write(client_fd, response, strlen(response));
+         if (write(client_fd, response, strlen(response)) < 0)
+        {
+            close(this->fd);
+            perror("Send failed");
+            return false;
+        }
 
         auto current = std::chrono::system_clock::now();
         double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();

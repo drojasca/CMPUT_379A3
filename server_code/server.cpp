@@ -8,45 +8,6 @@
 #include <string>
 #include "server.h"
 
-void parse_input(std::vector<std::string> &parsed_input, std::string input)
-{
-    std::string temp;
-    // parse string on white space
-    for (auto c : input)
-    {
-        if (c == ' ' && temp.size() != 0)
-        {
-            parsed_input.push_back(temp);
-            temp = "";
-        }
-
-        if (c != ' ')
-        {
-            temp += c;
-        }
-    }
-
-    if (temp.size() != 0)
-    {
-        parsed_input.push_back(temp);
-    }
-}
-
-void Server::print(std::string type, std::string name, std::string command)
-{
-    auto current = std::chrono::system_clock::now();
-    double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
-
-    if (type == "work")
-    {
-        printf("%.2f: # %3d (T%3s) from %s\n", current_epoch, this->count, command.c_str(), name.c_str());
-    }
-    else if (type == "done")
-    {
-        printf("%.2f: # %3d (Done) from %s\n", current_epoch, this->count, name.c_str());
-    }
-}
-
 void Server::run(std::string port)
 {
     if (!std::regex_match(port, std::regex("[0-9]+")))
@@ -59,17 +20,17 @@ void Server::run(std::string port)
 
     if (!this->initialize())
     {
-        std::cout << "error" << std::endl;
+        perror("Could not create/bind socket");
         return;
     }
 
     if (!this->listen_client())
     {
-        std::cout << "error" << std::endl;
+        perror("Error Listening");
         return;
     }
 
-    this->print_statistics();
+    this->handler.print_statistics(this->clients, this->first, this->count, this->start);
 }
 
 bool Server::initialize()
@@ -89,10 +50,16 @@ bool Server::initialize()
 
     // bind socket to the server address
     if (bind(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        close(this->fd);
         return false;
+    }
 
-    if (listen(this->fd, 1) < 0) // wait for clients, only 1 is allowed.
+    if (listen(this->fd, 1) < 0)
+    {
+        close(this->fd);
         return false;
+    }
 
     this->fds[0].fd = this->fd;
     this->fds[0].events = POLLIN;
@@ -105,7 +72,7 @@ bool Server::listen_client()
     int read_size;
     char buffer[1000];
 
-    printf("Listening on port %d for clients.\n", this->port);
+    printf("Using port %d\n", this->port);
 
     while (1)
     {
@@ -114,6 +81,7 @@ bool Server::listen_client()
 
         if (rc < 0)
         {
+            close(this->fd);
             perror("  poll() failed");
             return false;
         }
@@ -130,6 +98,7 @@ bool Server::listen_client()
         int client_fd = accept(this->fd, (struct sockaddr *)&client, (socklen_t *)&c);
         if (client_fd < 0)
         {
+            close(this->fd);
             perror("accept failed");
             return false;
         }
@@ -147,6 +116,7 @@ bool Server::listen_client()
 
         if (!received)
         {
+            close(this->fd);
             return false;
         }
 
@@ -157,9 +127,13 @@ bool Server::listen_client()
         response[res.size()] = '\0';
 
         write(client_fd, response, strlen(response));
-        this->print("done", client_name);
+
+        auto current = std::chrono::system_clock::now();
+        double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
+        this->handler.print("done", client_name, this->count, current_epoch);
     }
 
+    close(this->fd);
     return true;
 }
 
@@ -167,7 +141,7 @@ std::string Server::handleMessage(std::string message)
 {
     this->count++;
     std::vector<std::string> parsed_input;
-    parse_input(parsed_input, message);
+    this->handler.parse_input(parsed_input, message);
 
     std::string work = parsed_input[0];
     std::string client_name = parsed_input[1];
@@ -179,18 +153,18 @@ std::string Server::handleMessage(std::string message)
         this->clients.insert({client_name, 0});
     }
 
+    auto current = std::chrono::system_clock::now();
+    double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
+
+    if (!this->first)
+    {
+        this->start = current_epoch;
+        this->first = true;
+    }
+
     this->clients[client_name]++;
-    this->print("work", client_name, work);
+    this->handler.print("work", client_name, this->count, current_epoch, work);
 
     Trans(std::stoi(work));
     return client_name;
-}
-
-void Server::print_statistics()
-{
-    printf("\nSUMMARY\n");
-    for (auto &name : this->clients)
-    {
-        printf("\t%d transactions from %s\n", name.second, name.first.c_str());
-    }
 }

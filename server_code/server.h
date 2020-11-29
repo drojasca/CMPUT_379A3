@@ -4,6 +4,7 @@
 #include <regex>
 #include "../common/global.h"
 #include "../common/tands.h"
+#include "string_handler.h"
 
 class Server
 {
@@ -11,12 +12,9 @@ public:
     void run(std::string port);
     bool initialize();
     bool listen_client();
-    void print(std::string type, std::string name, std::string command = "");
     std::string handleMessage(std::string message);
-    void print_statistics();
 
 private:
-    bool first = true;
     int port;
     int fd;
     int count = 0;
@@ -25,6 +23,9 @@ private:
     int rc;
     int nfs = 1;
     std::unordered_map<std::string, int> clients;
+    bool first = false;
+    double start;
+    StringHandler handler;
 };
 
 #endif

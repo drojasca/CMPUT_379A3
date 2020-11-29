@@ -16,6 +16,8 @@ Client::Client(std::string ip)
 
     this->name = name;
     this->name += "." + std::to_string(pid) + "\n";
+
+    this->handler = StringHandler(this->name.substr(0, this->name.size() - 1));
 }
 
 void Client::run(std::string port)
@@ -26,33 +28,22 @@ void Client::run(std::string port)
     this->port = std::stoi(port);
 
     if (this->port < 5000 || this->port > 64001)
+    {
+        this->handler.finalize();
         return;
+    }
 
     this->initialize();
+
     if (this->get_work())
     {
-        printf("\tSent %d transactions\n", this->count);
+        printf("\t\tSent %d transactions\n", this->count);
+    }
+    else
+    {
+        this->handler.finalize();
     }
 }
-
-void Client::print(std::string val, std::string type)
-{
-    auto current = std::chrono::system_clock::now();
-    double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
-    if (type == "send")
-    {
-        printf("T%-7s%.2f: Send (T%3s)\n", val.c_str(), current_epoch, val.c_str());
-    }
-    else if (type == "recv")
-    {
-        printf("\t%-10.2f: Recv (D%3s)\n", current_epoch, val.c_str());
-    }
-    else if (type == "sleep")
-    {
-        printf("Sleep %s units\n", val.c_str());
-    }
-}
-
 void Client::initialize()
 {
     // setup server address
@@ -60,7 +51,7 @@ void Client::initialize()
     this->serv_addr.sin_addr.s_addr = inet_addr(this->ip.c_str());
     this->serv_addr.sin_port = htons(this->port); // port
 
-    printf("\tUsing port %d\n\tUsing server address %s\n\tHost %s\n", this->port, this->ip.c_str(), this->name.c_str());
+    printf("\t\tUsing port %d\n\t\tUsing server address %s\n\t\tHost %s\n", this->port, this->ip.c_str(), this->name.c_str());
 }
 
 bool Client::connect_server()
@@ -101,10 +92,14 @@ bool Client::get_work()
         if (input.at(0) == 'T')
         {
             if (!this->connect_server())
+            {
+                close(this->fd);
                 return false;
+            }
 
             if (!this->send_message(num_tran) || !this->get_response())
             {
+                close(this->fd);
                 return false;
             }
 
@@ -115,7 +110,7 @@ bool Client::get_work()
         else if (input.at(0) == 'S')
         {
             Sleep(std::stoi(num_tran));
-            this->print(num_tran, "sleep");
+            this->handler.print(num_tran, "sleep");
         }
 
         parsed = std::vector<std::string>();
@@ -138,7 +133,7 @@ bool Client::send_message(std::string val)
     }
 
     this->count++;
-    this->print(val, "send");
+    this->handler.print(val, "send");
 
     return true;
 }
@@ -154,7 +149,7 @@ bool Client::get_response()
         return false;
     }
 
-    this->print(server_reply, "recv");
+    this->handler.print(server_reply, "recv");
 
     return true;
 }

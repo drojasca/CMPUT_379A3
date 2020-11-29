@@ -11,7 +11,6 @@ public:
     void initialize();
     bool get_work();
     bool connect_server();
-    void print(std::string command, std::string type);
     bool get_response();
     bool send_message(std::string val);
 

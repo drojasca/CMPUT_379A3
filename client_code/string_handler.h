@@ -5,6 +5,8 @@
 class StringHandler
 {
 public:
+    StringHandler(std::string name);
+    StringHandler();
     // read in line from the terminal
     bool get_input(std::vector<std::string> &parsed);
 
@@ -13,6 +15,13 @@ public:
 
     // parse the input from the terminal
     void parse_input(std::vector<std::string> &parsed_input, std::string input);
+
+    void print(std::string val, std::string type);
+
+    void finalize();
+
+private:
+    int fd;
 };
 
 #endif

@@ -1,0 +1,36 @@
+.TH CLIENT 1
+.SH NAME
+.TP
+client \- Run client that sends interacts with server or sleeps. The client will accept two commands when running, T<n> or S<n> where n are intergers. This can be entered through command line as single command or from inputfile.
+.SH SYNOPSIS
+.TP
+client \fIport\ \fIip_address\  
+.SH DESCRIPTION
+.TP
+\fBclient\ runs a client program that accepts a \fIport\fP and \fIip_address\ 
+.TP
+\fBport\ port that that the server is listening to, ranging between 5000 to 66000.
+.TP
+\fBip_address\ ip address that the server is running on.
+.SH REQUIRED FILES
+.TP
+\fRMakefile
+compiles the program
+.TP
+\fR/client_code/client.cpp
+source code for driver of the client
+.TP
+\fR/client_code/main_client.cpp
+source code that is intially run
+.TP
+\fR/client_code/string_handler.cpp
+source code that handles logging and parsing input
+.TP
+\fR/common/tands.cpp
+source code for sleep and work
+.SH AUTHOR
+.TP
+Daniel Rojas-Cardona
+.SH SEE ALSO
+.TP
+server.pdf for information on the server code

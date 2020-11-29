@@ -37,7 +37,7 @@ void StringHandler::print(std::string type, std::string name, int count, double 
     }
 }
 
-void StringHandler::print_statistics(std::unordered_map<std::string, int> clients, bool first, int count, double start)
+void StringHandler::print_statistics(std::unordered_map<std::string, int> clients, bool first, int count, double start, double finish)
 {
     auto current = std::chrono::system_clock::now();
     double finish = std::chrono::duration<double>(current.time_since_epoch()).count();
@@ -47,7 +47,7 @@ void StringHandler::print_statistics(std::unordered_map<std::string, int> client
         printf("\t%d transactions from %s\n", name.second, name.first.c_str());
     }
 
-    double duration = first ? finish - start - 30 : 0;
+    double duration = first ? finish - start : 0;
 
     printf("%.1f transactions/sec (%d/%.2f)\n", (double)(count / (duration == 0 ? 1 : duration)), count, duration);
 }

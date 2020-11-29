@@ -25,6 +25,7 @@ private:
     std::unordered_map<std::string, int> clients;
     bool first = false;
     double start;
+    double finish;
     StringHandler handler;
 };
 

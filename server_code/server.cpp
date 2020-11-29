@@ -30,7 +30,7 @@ void Server::run(std::string port)
         return;
     }
 
-    this->handler.print_statistics(this->clients, this->first, this->count, this->start);
+    this->handler.print_statistics(this->clients, this->first, this->count, this->start, this->finish);
 }
 
 bool Server::initialize()
@@ -130,6 +130,9 @@ bool Server::listen_client()
 
         auto current = std::chrono::system_clock::now();
         double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
+
+        this->finish = current_epoch;
+
         this->handler.print("done", client_name, this->count, current_epoch);
     }
 

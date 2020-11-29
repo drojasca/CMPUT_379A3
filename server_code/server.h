@@ -9,9 +9,17 @@
 class Server
 {
 public:
+
+    // function responsible for running the server
     void run(std::string port);
+
+    // create and bind the socket
     bool initialize();
+
+    // deal with incoming messages from client
     bool listen_client();
+
+    // parse the message from the client
     std::string handleMessage(std::string message);
 
 private:

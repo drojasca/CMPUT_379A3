@@ -1,0 +1,34 @@
+.TH SERVER 1 "November 29, 2020"
+.SH NAME
+.TP
+server \- Run server that will recieve work from the client and send a message back once it is finished. If the server does not recieve a message from the client for 30 seconds, it will shut down. It logs everyting to a stdout.
+.SH SYNOPSIS
+.TP
+server \fIport\fP
+.SH DESCRIPTION
+.TP
+\fBserver\fP runs a server program that accepts a \fIport\fP
+.TP
+\fBport\fP port that that the server is listening to, ranging between 5000 to 64000.
+.SH REQUIRED FILES
+.TP
+\fRMakefile
+compiles the program
+.TP
+\fR/server_code/server.cpp
+source code that handles the messages from the client and sending messages.
+.TP
+\fR/server_code/main_server.cpp
+source code that is intially run.
+.TP
+\fR/server_code/string_handler.cpp
+source code that handles logging and parsing input.
+.TP
+\fR/common/tands.cpp
+source code for work that the server will do.
+.SH AUTHOR
+.TP
+Daniel Rojas-Cardona
+.SH SEE ALSO
+.TP
+client.pdf for information on the client code

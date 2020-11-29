@@ -1,33 +1,33 @@
-.TH CLIENT 1
+.TH CLIENT 1 "November 29, 2020"
 .SH NAME
 .TP
-client \- Run client that sends interacts with server or sleeps. The client will accept two commands when running, T<n> or S<n> where n are intergers. This can be entered through command line as single command or from inputfile.
+client \- Run client that interacts with server or sleeps. The client will accept two commands when running. T<n> where n is an integer greater than zero. This command will send work of length n to the server. S<n> where n is an integer between 0 and 100. This command specifies the length of "sleep" by the client. These commands can be entered through the command line or come from an input file. It will log everyting to a file that has the name of the client (auto generated). Each time the client sends a message, it will establish a conneciton, wait for reply, then drop connection when the server sends a message.
 .SH SYNOPSIS
 .TP
 client \fIport\ \fIip_address\  
 .SH DESCRIPTION
 .TP
-\fBclient\ runs a client program that accepts a \fIport\fP and \fIip_address\ 
+\fBclient\fP runs a client program that accepts a \fIport\fP and \fIip_address\ 
 .TP
-\fBport\ port that that the server is listening to, ranging between 5000 to 66000.
+\fBport\fP port that that the server is listening to, ranging between 5000 to 64000.
 .TP
-\fBip_address\ ip address that the server is running on.
+\fBip_address\fP ip address that the server is running on.
 .SH REQUIRED FILES
 .TP
 \fRMakefile
 compiles the program
 .TP
 \fR/client_code/client.cpp
-source code for driver of the client
+source code for sending and recieving messages from the client.
 .TP
 \fR/client_code/main_client.cpp
-source code that is intially run
+source code that is intially run.
 .TP
 \fR/client_code/string_handler.cpp
-source code that handles logging and parsing input
+source code that handles logging and parsing input.
 .TP
 \fR/common/tands.cpp
-source code for sleep and work
+source code for sleeping (not doing any work).
 .SH AUTHOR
 .TP
 Daniel Rojas-Cardona

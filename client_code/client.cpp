@@ -2,7 +2,8 @@
 
 Client::Client(std::string ip)
 {
-    int size = 1000;
+    // create client name and set ip
+    int size = 100000;
     this->ip = ip;
     int pid = getpid();
     char name[size];
@@ -22,6 +23,7 @@ Client::Client(std::string ip)
 
 void Client::run(std::string port)
 {
+    // check if port is integer in the correct range
     if (!std::regex_match(port, std::regex("[0-9]+")))
         return;
 
@@ -35,6 +37,7 @@ void Client::run(std::string port)
 
     this->initialize();
 
+    // get input from terminal and send messages to the server
     if (this->get_work())
     {
         printf("\t\tSent %d transactions\n", this->count);
@@ -55,7 +58,8 @@ void Client::initialize()
 }
 
 bool Client::connect_server()
-{
+{   
+    // create socket and connect to server
     this->fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (this->fd < 0)
@@ -76,19 +80,20 @@ bool Client::get_work()
 {
     std::vector<std::string> parsed;
 
+    // get input until EOF is found
     while (this->handler.get_input(parsed))
     {
         std::string input = parsed[0];
         // get the the number from the input
         std::string num_tran = input.substr(1);
 
-        // check if it is a numbre
+        // check if it is a number
         if (!std::regex_match(num_tran, std::regex("[0-9]+")))
         {
             continue;
         }
 
-        // if it is for a consumer, put it in the queue
+        // if it is work, send work
         if (input.at(0) == 'T')
         {
             if (!this->connect_server())
@@ -106,7 +111,7 @@ bool Client::get_work()
             close(this->fd);
         }
 
-        // if it is sleep, put the producer to sleep
+        // if it is sleep, put the client to sleep
         else if (input.at(0) == 'S')
         {
             Sleep(std::stoi(num_tran));
@@ -121,6 +126,7 @@ bool Client::get_work()
 
 bool Client::send_message(std::string val)
 {
+    // formate message to send to server
     std::string mess = val + " " + this->name;
     char message[mess.size() + 1];
     strcpy(message, mess.c_str());
@@ -141,6 +147,7 @@ bool Client::send_message(std::string val)
 bool Client::get_response()
 {
     char server_reply[1000];
+    
     //Receive a reply from the server
     memset(server_reply, 0, 1000);
     if (recv(this->fd, server_reply, 1000, 0) < 0)

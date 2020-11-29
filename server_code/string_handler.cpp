@@ -26,7 +26,7 @@ void StringHandler::parse_input(std::vector<std::string> &parsed_input, std::str
 
 void StringHandler::print(std::string type, std::string name, int count, double time, std::string command)
 {
-
+    // print the correct output to the system
     if (type == "work")
     {
         printf("%.2f: # %3d (T%3s) from %s\n", time, count, command.c_str(), name.c_str());
@@ -39,8 +39,7 @@ void StringHandler::print(std::string type, std::string name, int count, double 
 
 void StringHandler::print_statistics(std::unordered_map<std::string, int> clients, bool first, int count, double start, double finish)
 {
-    auto current = std::chrono::system_clock::now();
-    double finish = std::chrono::duration<double>(current.time_since_epoch()).count();
+    // print the summary statistics 
     printf("\nSUMMARY\n");
     for (auto &name : clients)
     {

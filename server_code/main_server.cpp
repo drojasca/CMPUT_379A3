@@ -2,6 +2,7 @@
 #include <iostream>
 #include "server.h"
 
+// file that is called to run server
 int main(int argc, char **argv)
 {
     std::string port;

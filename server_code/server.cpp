@@ -10,11 +10,13 @@
 
 void Server::run(std::string port)
 {
+    // check if digit
     if (!std::regex_match(port, std::regex("[0-9]+")))
         return;
 
     this->port = std::stoi(port);
-
+    
+    // validate input
     if (this->port < 5000 || this->port > 64001)
         return;
 
@@ -74,11 +76,15 @@ bool Server::listen_client()
 
     printf("Using port %d\n", this->port);
 
+    // polling taken idea taken from https://www.ibm.com/support/knowledgecenter/ssw_ibm_i_71/rzab6/poll.htm#:~:text=The%20only%20difference%20between%20these,to%20represent%20each%20descriptor%20number.&text=The%20poll()%20API%20allows,than%20an%20array%20of%20bits
+
     while (1)
     {
+        // wait 30 seconds for message from client
         memset(buffer, 0, 1000);
         this->rc = poll(fds, this->nfs, this->timeout);
 
+        // an error occured
         if (rc < 0)
         {
             close(this->fd);
@@ -86,6 +92,7 @@ bool Server::listen_client()
             return false;
         }
 
+        // poll timedout
         if (rc == 0)
         {
             break;
@@ -105,7 +112,8 @@ bool Server::listen_client()
 
         std::string message = "";
         bool received = false;
-
+        
+        // read in message until client name is completley sent or the conneciton is closed
         while (message[message.size() - 1] != '\n' && (read_size = recv(client_fd, buffer, 1000, 0)) > 0)
         {
             //Send the message back to client
@@ -114,18 +122,22 @@ bool Server::listen_client()
             memset(buffer, 0, 1000);
         }
 
+        // error occured
         if (!received)
         {
             close(this->fd);
+            perror("failed to read in client");
             return false;
         }
 
+        // dead with the message
         std::string client_name = handleMessage(message);
         std::string res = std::to_string(this->count);
         char response[res.size() + 1];
         strcpy(response, res.c_str());
         response[res.size()] = '\0';
 
+        // send response
         write(client_fd, response, strlen(response));
 
         auto current = std::chrono::system_clock::now();
@@ -143,6 +155,8 @@ bool Server::listen_client()
 std::string Server::handleMessage(std::string message)
 {
     this->count++;
+
+    // parse the input
     std::vector<std::string> parsed_input;
     this->handler.parse_input(parsed_input, message);
 
@@ -151,14 +165,17 @@ std::string Server::handleMessage(std::string message)
 
     client_name = client_name.substr(0, client_name.size() - 1);
 
+    // increment amount of work sent by the client
     if (this->clients.find(client_name) == this->clients.end())
     {
         this->clients.insert({client_name, 0});
     }
 
+
     auto current = std::chrono::system_clock::now();
     double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
 
+    // set the start time of the first work that was recieved by the sever if it has not been set
     if (!this->first)
     {
         this->start = current_epoch;

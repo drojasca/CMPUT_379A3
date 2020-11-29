@@ -1,4 +1,4 @@
-CFLAGS = -Wall -std=c++11usr/share/man/man1/client_info.1
+CFLAGS = -Wall -std=c++11
 CC = g++
 
 TARGET_SERVER = server
@@ -34,16 +34,16 @@ debug: all
 all: $(TARGET_CLIENT) $(TARGET_SERVER)
 
 $(TARGET_CLIENT): $(OBJECTS_CLIENT) $(OBJECTS_COMMON)
-	$(CC) $(CFLAGS) $(OBJECTS_CLIENT) $(OBJECTS_COMMON) -o $(TARGET_CLIENT) 
+	$(CC) $(CFLAGS) $(OBJECTS_CLIENT) $(OBJECTS_COMMON) -o $(TARGET_CLIENT)
+	$(shell groff -Tpdf -man client.1 > client.pdf) 
+
 
 $(CLIENT_DIR)/%.o: $(CLIENT_DIR)/%.cpp	
 	$(CC) $(CFLAGS) -c -MMD -o $@ $<
-	groff -Tpdf -man client.1 > client.pdf
-
 
 $(TARGET_SERVER): $(OBJECTS_SERVER) $(OBJECTS_COMMON)
 	$(CC) $(CFLAGS) $(OBJECTS_SERVER) $(OBJECTS_COMMON) -o $(TARGET_SERVER)
-
+	$(shell groff -Tpdf -man server.1 > server.pdf)
 
 $(SERVER_DIR)/%.o:	$(SERVER_DIR)/%.cpp
 	$(CC) $(CFLAGS) -c -MMD -o $@ $<

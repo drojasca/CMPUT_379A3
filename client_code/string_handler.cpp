@@ -4,6 +4,7 @@ StringHandler::StringHandler() {}
 
 StringHandler::StringHandler(std::string name)
 {
+    // create file to log to
     this->fd = open(name.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd == -1)
@@ -19,9 +20,10 @@ StringHandler::StringHandler(std::string name)
         exit(-1);
     }
 }
+
 void StringHandler::parse_input(std::vector<std::string> &parsed_input, std::string input)
 {
-    std::string temp;
+    std::string temp = "";
     // parse string on white space
     for (auto c : input)
     {
@@ -64,6 +66,7 @@ bool StringHandler::get_input(std::vector<std::string> &parsed)
 
 void StringHandler::print(std::string val, std::string type)
 {
+    // print the current actions that was taken
     auto current = std::chrono::system_clock::now();
     double current_epoch = std::chrono::duration<double>(current.time_since_epoch()).count();
     if (type == "send")
@@ -82,5 +85,6 @@ void StringHandler::print(std::string val, std::string type)
 
 void StringHandler::finalize()
 {
+    // close file discreptor
     close(this->fd);
 }
